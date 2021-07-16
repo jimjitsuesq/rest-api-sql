@@ -1,6 +1,7 @@
 'use strict';
 
 let db = require('./models').sequelize;
+const routes = require('./routes');
 
 // load modules
 const express = require('express');
@@ -11,6 +12,8 @@ const enableGlobalErrorLogging = process.env.ENABLE_GLOBAL_ERROR_LOGGING === 'tr
 
 // create the Express app
 const app = express();
+
+app.use(express.json());
 
 // setup morgan which gives us http request logging
 app.use(morgan('dev'));
@@ -24,12 +27,24 @@ app.use(morgan('dev'));
   }
 })();
 
+(async () => {
+  try {
+    await db.sync();
+    console.log('Synced!')
+  }
+  catch (error) {
+    console.log('Sync error!')
+  }
+})();
+
 // setup a friendly greeting for the root route
 app.get('/', (req, res) => {
   res.json({
     message: 'Welcome to the REST API project!',
   });
 });
+
+app.use('/api', routes);
 
 // send 404 if no other route matched
 app.use((req, res) => {

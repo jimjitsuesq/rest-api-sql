@@ -26,7 +26,7 @@ router.get('/users', authenticateUser, asyncHandler(async (req, res) => {
 router.post('/users', asyncHandler(async (req, res) => {
     try {
       await User.create(req.body);
-      return res.status(201).json({ "message": "Account successfully created!" }).location('/');
+      return res.status(201).location('/').end();
     } catch (error) {
       if (error.name === 'SequelizeValidationError' || error.name === 'SequelizeUniqueConstraintError') {
         const errors = error.errors.map(err => err.message);
@@ -50,10 +50,9 @@ router.get('/courses', asyncHandler(async (req, res) => {
  */
 router.get('/courses/:id', asyncHandler(async (req, res) => {
   let course = await Course.findByPk(req.params.id, {
-  // let course = await Course.findOne({
-    // where: {id: `${id}`},
     attributes: {exclude: ['createdAt', 'updatedAt']}
   })
+
   res.status(200).json({course})
   
 }));
@@ -81,12 +80,19 @@ router.post('/courses', authenticateUser, asyncHandler(async (req, res, next) =>
  router.put('/courses/:id', authenticateUser, asyncHandler(async (req, res, next) => {
   try {
     const course = req.body;
-    await Course.update(course, { where: { id: req.params.id } } );
-    res.status(204).end();
+    const courseToUpdate = await Course.findByPk(req.params.id); 
+    if ( courseToUpdate.userId === req.currentUser.id) {
+      await Course.update(course, { where: { id: req.params.id } } );
+      res.status(204).end();
+    } else {
+      res.status(403).end();
+    }
   } catch (error) {
     if (error.name === 'SequelizeValidationError' || error.name === 'SequelizeUniqueConstraintError') {
       const errors = error.errors.map(err => err.message);
       res.status(400).json({ errors });   
+    } else {
+      throw error;
     }
   }
   
@@ -97,8 +103,12 @@ router.post('/courses', authenticateUser, asyncHandler(async (req, res, next) =>
  */
  router.delete('/courses/:id', authenticateUser, asyncHandler(async (req, res, next) => {
   let course = await Course.findByPk(req.params.id);
-  course.destroy();
-  res.status(204).end()
+  if ( course.userId === req.currentUser.id) {
+    course.destroy();
+    res.status(204).end()
+  } else {
+    res.status(403).end()
+  }
 }));
 
 module.exports = router;

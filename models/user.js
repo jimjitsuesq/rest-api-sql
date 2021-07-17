@@ -1,6 +1,7 @@
 'use strict';
 const { Sequelize, DataTypes, Model} = require('sequelize');
 const db = require('.');
+const bcrypt = require('bcrypt');
 
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
@@ -35,9 +36,13 @@ module.exports = (sequelize, DataTypes) => {
     emailAddress: {
         type: DataTypes.STRING,
         allowNull: false,
+        unique: true,
         validate: {
           notNull: {
             msg: 'Please provide an Email Address',
+          },
+          isEmail: {
+            msg: 'PLease provide a valid Email Address'
           }
         }
     },
@@ -53,6 +58,11 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'User',
+    hooks: {
+      beforeCreate: async function(user) {
+        user.password = bcrypt.hashSync(user.password, bcrypt.genSaltSync(10), null);
+      }
+    }
   });
   
   User.associate = (models) => {

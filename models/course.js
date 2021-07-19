@@ -38,28 +38,10 @@ module.exports = (sequelize, DataTypes) => {
       }
     },
     estimatedTime: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        validate: {
-          notNull: {
-            msg: 'Please provide an Estimated Time',
-          },
-          notEmpty: {
-            msg: 'Please provide an Estimated Time',
-          }
-        }
+        type: DataTypes.STRING
     },
     materialsNeeded: {
         type: DataTypes.STRING,
-        allowNull: false,
-        validate: {
-          notNull: {
-            msg: 'Please provide the Materials Needed',
-          },
-          notEmpty: {
-            msg: 'Please provide the Materials Needed',
-          }
-        }
     }
   }, {
     sequelize,
@@ -69,8 +51,7 @@ module.exports = (sequelize, DataTypes) => {
   Course.associate = (models) => {
     Course.belongsTo(models.User, {
         foreignKey: {
-            fieldName: 'id',
-            allowNull: false,
+            fieldName: 'id'
         },
     });
   };
